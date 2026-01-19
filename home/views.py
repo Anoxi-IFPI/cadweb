@@ -6,6 +6,10 @@ from .forms import *
 
 from django .contrib import messages
 
+from django.http import JsonResponse
+
+from django.apps import apps
+
 def index(request):
     return render(request,'index.html')
 
@@ -167,7 +171,58 @@ def remover_produto(request, id):
     messages.success(request, 'Produto removido!')
     return redirect('produto')
 
-# View para Detalhes do Produto (Slide 70)
+# View para Detalhes do Produto
 def detalhes_produto(request, id):
     item = Produto.objects.get(pk=id)
     return render(request, 'produto/detalhes.html', {'item': item})
+
+# View para Ajustar Estoque do Produto
+def ajustar_estoque(request, id):
+    produto = produto = Produto.objects.get(pk=id)
+    estoque = produto.estoque # pega o objeto estoque relacionado ao produto
+    if request.method == 'POST':
+        form = EstoqueForm(request.POST, instance=estoque)
+        if form.is_valid():
+            estoque = form.save()
+            lista = []
+            lista.append(estoque.produto) 
+            return render(request, 'produto/lista.html', {'lista': lista})
+    else:
+         form = EstoqueForm(instance=estoque)
+    return render(request, 'produto/estoque.html', {'form': form,})
+
+
+# View de teste1
+def teste1(request):
+    return render(request,'testes/teste1.html')
+# View de teste2
+def teste2(request):
+    return render(request, 'testes/teste2.html')
+
+# View para busca genérica de dados (autocomplete)
+def buscar_dados(request, app_modelo):
+    termo = request.GET.get('q', '') # pega o termo digitado
+    try:
+        # Divida o app e o modelo
+        app, modelo = app_modelo.split('.')
+        modelo = apps.get_model(app, modelo)
+    except LookupError:
+        return JsonResponse({'error': 'Modelo não encontrado'}, status=404)
+    
+    # Verifica se o modelo possui os campos 'nome' e 'id'
+    if not hasattr(modelo, 'nome') or not hasattr(modelo, 'id'):
+        return JsonResponse({'error': 'Modelo deve ter campos "id" e "nome"'}, status=400)
+    
+    resultados = modelo.objects.filter(nome__icontains=termo)
+    dados = [{'id': obj.id, 'nome': obj.nome} for obj in resultados]
+    return JsonResponse(dados, safe=False)
+
+# View para exibir detalhes do cliente
+def detalhes_cliente(request, id):
+    try:
+        cliente_instancia = Cliente.objects.get(pk=id)
+    except Cliente.DoesNotExist:
+        messages.error(request, 'Cliente não encontrado')
+        return redirect('cliente')
+        
+    return render(request, 'cliente/detalhes.html', {'item': cliente_instancia})

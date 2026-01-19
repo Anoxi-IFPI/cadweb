@@ -46,7 +46,8 @@ class ProdutoForm(forms.ModelForm):
         model = Produto
         fields = ['nome', 'preco', 'categoria', 'img_base64'] 
         widgets = {
-            'categoria': forms.Select(attrs={'class': 'form-control'}), 
+            # 'categoria': forms.Select(attrs={'class': 'form-control'}), 
+            'categoria': forms.HiddenInput(),
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome'}), 
             'img_base64': forms.HiddenInput(), 
             'preco': forms.TextInput(attrs={
@@ -61,3 +62,15 @@ class ProdutoForm(forms.ModelForm):
         super(ProdutoForm, self).__init__(*args, **kwargs)
         self.fields['preco'].localize = True 
         self.fields['preco'].widget.is_localized = True
+
+#Estoque Form
+class EstoqueForm(forms.ModelForm):
+    class Meta:
+        model = Estoque
+        fields = ['produto','qtde']
+        
+        widgets = {
+            'produto': forms.HiddenInput(),  # Campo oculto para armazenar o ID do produto
+            'qtde':forms.TextInput(attrs={'class': 'inteiro form-control',}),
+    }
+    

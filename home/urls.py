@@ -15,12 +15,21 @@ urlpatterns = [
     path('cliente/form', views.form_cliente, name="form_cliente"),
     path('cliente/editar/<int:id>/', views.editar_cliente, name="editar_cliente"),
     path('cliente/remover/<int:id>/', views.remover_cliente, name="remover_cliente"),
+    path('cliente/detalhes/<int:id>/', views.detalhes_cliente, name="detalhes_cliente"),
 
+    # URLs de Produto
     path('produto/', views.produto, name='produto'),
     path('produto/form/', views.form_produto, name='form_produto'),
     path('produto/editar/<int:id>/', views.editar_produto, name='editar_produto'),
     path('produto/detalhes/<int:id>/', views.detalhes_produto, name='detalhes_produto'),
     path('produto/remover/<int:id>/', views.remover_produto, name='remover_produto'),
+    path('produto/ajustar_estoque/<int:id>/', views.ajustar_estoque, name='ajustar_estoque'),
+    
+    # urls.py
+    path('teste1/', views.teste1, name='teste1'),
+    path('teste2/', views.teste2, name='teste2'), # Adicione esta linha
+    path('buscar_dados/<str:app_modelo>/', views.buscar_dados, name='buscar_dados'),
+    
 ]
     
 

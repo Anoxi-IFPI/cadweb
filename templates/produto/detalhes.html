@@ -24,11 +24,6 @@
         </div>
 
         <div class="form-group mb-3">
-            <label>Categoria:</label>
-            <input type="text" class="form-control" value="{{ item.categoria }}" disabled>
-        </div>
-
-        <div class="form-group mb-3">
             <label class="d-block">Imagem do Produto:</label>
             {% if item.img_base64 %}
                 <img src="{{ item.img_base64 }}" class="img-thumbnail" style="max-width: 300px; border: 1px solid #ddd;">
