@@ -2,6 +2,8 @@ from django import forms
 from .models import *
 from datetime import date # Necessário para a validação da data 
 
+
+# Categoria Form
 class CategoriaForm(forms.ModelForm):
     class Meta:
         model = Categoria
@@ -23,6 +25,8 @@ class CategoriaForm(forms.ModelForm):
             raise forms.ValidationError("O campo ordem deve ser maior que zero.")
         return ordem
 
+
+# Cliente Form
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
@@ -39,6 +43,7 @@ class ClienteForm(forms.ModelForm):
         if datanasc and datanasc > date.today():
             raise forms.ValidationError("A data de nascimento não pode ser maior que a data atual.")
         return datanasc
+
 
 # === ADICIONE A CLASSE PRODUTOFORM 
 class ProdutoForm(forms.ModelForm):
@@ -73,4 +78,28 @@ class EstoqueForm(forms.ModelForm):
             'produto': forms.HiddenInput(),  # Campo oculto para armazenar o ID do produto
             'qtde':forms.TextInput(attrs={'class': 'inteiro form-control',}),
     }
+      
+# Pedido Form  
+class PedidoForm(forms.ModelForm):
+    class Meta:
+        model = Pedido
+        fields = ['cliente']
+        widgets = {
+            'cliente': forms.HiddenInput(),  # Campo oculto para armazenar o ID
+        }
+
+
+# ItemPedido Form
+class ItemPedidoForm(forms.ModelForm):
+    class Meta:
+        model = ItemPedido
+        fields = ['pedido','produto', 'qtde']
+
+
+        widgets = {
+            'pedido': forms.HiddenInput(),  # Campo oculto para armazenar o ID
+            'produto': forms.HiddenInput(),  # Campo oculto para armazenar o ID
+            'qtde':forms.TextInput(attrs={'class': 'form-control',}),
+        }
+
     

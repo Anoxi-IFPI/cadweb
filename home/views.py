@@ -226,3 +226,76 @@ def detalhes_cliente(request, id):
         return redirect('cliente')
         
     return render(request, 'cliente/detalhes.html', {'item': cliente_instancia})
+
+# View para listar pedidos
+def pedido(request):
+    lista = Pedido.objects.all().order_by('-id')  # Obtém todos os registros
+    return render(request, 'pedido/lista.html', {'lista': lista})
+
+# View para criar um novo pedido
+def novo_pedido(request,id):
+    if request.method == 'GET':
+        try:
+            cliente = Cliente.objects.get(pk=id)
+        except Cliente.DoesNotExist:
+            # Caso o registro não seja encontrado, exibe a mensagem de erro
+            messages.error(request, 'Registro não encontrado')
+            return redirect('cliente')  # Redireciona para a listagem
+        # cria um novo pedido com o cliente selecionado
+        pedido = Pedido(cliente=cliente)
+        form = PedidoForm(instance=pedido)# cria um formulario com o novo pedido
+        return render(request, 'pedido/form.html',{'form': form,})
+    else: # se for metodo post, salva o pedido.
+        form = PedidoForm(request.POST)
+        if form.is_valid():
+            pedido = form.save()
+            return redirect('pedido')
+
+
+# View para exibir detalhes do pedido
+def detalhes_pedido(request, id):
+    try:
+        pedido = Pedido.objects.get(pk=id)
+    except Pedido.DoesNotExist:
+        # Caso o registro não seja encontrado, exibe a mensagem de erro
+        messages.error(request, 'Registro não encontrado')
+        return redirect('pedido')  # Redireciona para a listagem    
+    
+    if request.method == 'GET':
+        itemPedido = ItemPedido(pedido=pedido)
+        form = ItemPedidoForm(instance=itemPedido)
+    else:
+        form = ItemPedidoForm(request.POST)
+        # aguardando implementação POST, salvar item
+    
+    contexto = {
+        'pedido': pedido,
+        'form': form,
+    }
+    return render(request, 'pedido/detalhes.html',contexto )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

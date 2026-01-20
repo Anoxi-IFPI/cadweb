@@ -24,12 +24,16 @@ urlpatterns = [
     path('produto/detalhes/<int:id>/', views.detalhes_produto, name='detalhes_produto'),
     path('produto/remover/<int:id>/', views.remover_produto, name='remover_produto'),
     path('produto/ajustar_estoque/<int:id>/', views.ajustar_estoque, name='ajustar_estoque'),
-    
-    # urls.py
+
+    # urls de Teste
     path('teste1/', views.teste1, name='teste1'),
     path('teste2/', views.teste2, name='teste2'), # Adicione esta linha
     path('buscar_dados/<str:app_modelo>/', views.buscar_dados, name='buscar_dados'),
-    
+
+    # URLs de Pedido
+    path('pedido/', views.pedido, name='pedido'),
+    path('pedido/form/<int:id>', views.novo_pedido, name='novo_pedido'),
+    path('pedido/detalhes/<int:id>/', views.detalhes_pedido, name='detalhes_pedido'),
 ]
     
 

@@ -23,10 +23,13 @@
             <td>{{item.id}}</td>
             <td>{{item.nome}}</td>
             <td>{{item.cpf}}</td>
-            {# Usando a propriedade datanascimento criada no seu Model Cliente #}
             <td>{{item.datanascimento}}</td>
             <td> 
-                <button onclick="location='#'" class="btn btn-primary btn-sm">Novo Pedido</button>
+                <button 
+                    onClick="location='{% url 'novo_pedido' item.id %}'" 
+                    type="button" class="btn btn-primary btn-sm">Novo Pedido
+                </button>                
+                
                 <button onclick="location='{% url 'detalhes_cliente' item.id %}'" class="btn btn-info btn-sm">Detalhes </button>
                 <button onclick="location='{% url 'editar_cliente' item.id %}'"  class="btn btn-warning btn-sm">Editar</button>
                 <a href="{% url 'remover_cliente' item.id %}" class="btn btn-danger btn-sm" 
