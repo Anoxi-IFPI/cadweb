@@ -80,13 +80,18 @@ class EstoqueForm(forms.ModelForm):
     }
       
 # Pedido Form  
+# home/forms.py
+
 class PedidoForm(forms.ModelForm):
+    # Garante que o cliente seja validado corretamente pelo Django
+    cliente = forms.ModelChoiceField(
+        queryset=Cliente.objects.all(), 
+        widget=forms.HiddenInput()
+    )
+
     class Meta:
         model = Pedido
-        fields = ['cliente']
-        widgets = {
-            'cliente': forms.HiddenInput(),  # Campo oculto para armazenar o ID
-        }
+        fields = ['cliente', 'status']
 
 
 # ItemPedido Form
@@ -100,5 +105,51 @@ class ItemPedidoForm(forms.ModelForm):
             'produto': forms.HiddenInput(),  # Campo oculto para armazenar o ID
             'qtde':forms.TextInput(attrs={'class': 'form-control',}),
         }
+
+# Pagamento Form
+
+# No arquivo home/forms.py
+
+class PagamentoForm(forms.ModelForm):
+    class Meta:
+        model = Pagamento  # ESTA LINHA resolve o erro "no model class specified"
+        fields = ['pedido', 'forma', 'valor']
+        widgets = {
+            'pedido': forms.HiddenInput(),
+            'forma': forms.Select(attrs={'class': 'form-control'}),
+            'valor': forms.TextInput(attrs={'class': 'money form-control', 'placeholder': '0.000,00'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(PagamentoForm, self).__init__(*args, **kwargs)
+        self.fields['valor'].localize = True
+        self.fields['valor'].widget.is_localized = True
+
+    def clean_valor(self):
+        valor = self.cleaned_data.get('valor')
+        
+        # Recupera o pedido de forma segura para não dar erro de DoesNotExist
+        try:
+            pedido = self.instance.pedido
+        except (Pedido.DoesNotExist, AttributeError):
+            pedido_id = self.data.get('pedido')
+            pedido = Pedido.objects.get(pk=pedido_id)
+
+        if valor is not None:
+            # Trava 1: Impede valor zero ou negativo
+            if valor <= 0:
+                raise forms.ValidationError("O valor deve ser maior que zero.")
+            
+            # Trava 2: Impede pagar mais do que o débito restante
+            if valor > pedido.debito:
+                raise forms.ValidationError(f"O valor não pode ser maior que o débito (R$ {pedido.debito}).")
+        
+        return valor
+
+        
+    
+    
+
+
 
     

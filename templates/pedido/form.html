@@ -1,56 +1,47 @@
 {% extends "base.html" %}
 
-
-{% block titulo_conteudo %} Novo Pedido {% endblock titulo_conteudo %}
-
+{% block titulo_conteudo %} 
+    {% if item %} Editar Item do Pedido {% else %} Confirmar Novo Pedido {% endif %} 
+{% endblock titulo_conteudo %}
 
 {% block conteudo %} 
-
-
-
-
 <form method="post">
     {% csrf_token %}    
 
-    <p>
-        <label>Cliente:</label>
-        <span class="form-control" readonly>{{ item.pedido.cliente.nome }}</span>
-    </p>
-
-    <p>
-        <label>Produto:</label>
-        <span class="form-control" readonly>{{ item.produto.nome }}</span>
-    </p>
-  
-    <p>
-        <label>Status do Pedido:</label>
-        <span class="form-control" readonly>{{ item.pedido.get_status_display }}</span>
-    </p>    
-
-    <p>
-        <label for="{{ form.qtde.id_for_label }}">Quantidade:</label>
-        {{ form.qtde }}
-        {% if form.qtde.errors %}
-            <div class="text-danger">{{ form.qtde.errors }}</div>
-        {% endif %}
-    </p>
-    
-    <div style="display:none">
-        {{ form.produto }}
-        {{ form.pedido }}
+    <div class="mb-3">
+        <label><strong>Cliente / Destinatário:</strong></label>
+        <span class="form-control bg-light" readonly>
+            {% if item %} {{ item.pedido.cliente.nome }} {% else %} {{ form.instance.cliente.nome }} {% endif %}
+        </span>
     </div>
 
-    <button class="btn btn-primary btn-sm" type="submit">Salvar Alterações</button>
-    <a href="{% url 'detalhes_pedido' item.pedido.id %}" class="btn btn-secondary btn-sm">Cancelar</a>
+    {% if item %}
+    <div class="mb-3">
+        <label><strong>Produto:</strong></label>
+        <span class="form-control bg-light" readonly>{{ item.produto.nome }}</span>
+    </div>
+    {% endif %}
+
+    <div class="mb-3">
+        <label for="{{ form.qtde.id_for_label }}"><strong>Quantidade:</strong></label>
+        {{ form.qtde }}
+        {% if form.qtde.errors %}
+            <div class="text-danger small">{{ form.qtde.errors }}</div>
+        {% endif %}
+    </div>
+    
+    <div style="display:none">
+        {{ form.cliente }} {{ form.produto }} {{ form.pedido }}
+    </div>
+
+    <button class="btn btn-primary btn-sm" type="submit">
+        {% if item %} Salvar Alterações {% else %} Gerar Pedido {% endif %}
+    </button>
+
+    {% if item %}
+        <a href="{% url 'detalhes_pedido' item.pedido.id %}" class="btn btn-secondary btn-sm">Cancelar</a>
+    {% else %}
+        <a href="{% url 'cliente' %}" class="btn btn-secondary btn-sm">Cancelar</a>
+    {% endif %}
 </form>
-
-
-
-
 {% endblock conteudo %}
-
-
-{% block javascript %}
-
-
-{% endblock javascript %}

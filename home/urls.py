@@ -27,16 +27,26 @@ urlpatterns = [
 
     # urls de Teste
     path('teste1/', views.teste1, name='teste1'),
-    path('teste2/', views.teste2, name='teste2'), # Adicione esta linha
+    path('teste2/', views.teste2, name='teste2'), 
     path('buscar_dados/<str:app_modelo>/', views.buscar_dados, name='buscar_dados'),
 
     # URLs de Pedido
     path('pedido/', views.pedido, name='pedido'),
     path('pedido/form/<int:id>', views.novo_pedido, name='novo_pedido'),
     path('pedido/detalhes/<int:id>/', views.detalhes_pedido, name='detalhes_pedido'),
-    # Verifique se os nomes coincidem com o que você usou no redirect das views
+    
+    # URLs de Itens do Pedido
     path('pedido/item/<int:id>/editar/', views.editar_item_pedido, name='editar_item_pedido'), 
     path('pedido/item/<int:id>/remover/', views.remover_item_pedido, name='remover_item_pedido'),
+    
+    # URLs de Pagamento
+    path('pedido/pagamento/<int:id>/', views.form_pagamento, name='form_pagamento'),
+    #
+    path('pedido/pagamento/<int:id>/editar/', views.editar_pagamento, name='editar_pagamento'),
+    path('pedido/pagamento/<int:id>/remover/', views.remover_pagamento, name='remover_pagamento'),
+    
+    # URL da Nota Fiscal
+    path('pedido/nota_fiscal/<int:id>/', views.nota_fiscal, name='nota_fiscal'), 
 ]
     
 

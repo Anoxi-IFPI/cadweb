@@ -66,7 +66,7 @@ def editar_categoria(request, id):
 # View para exibir detalhes 
 @login_required
 def detalhes_categoria(request, id):
-    categoria = Categoria.objects.get(pk=id) # Busca a categoria no banco [cite: 12]
+    categoria = Categoria.objects.get(pk=id) 
     return render(request, 'categoria/detalhes.html', {'item': categoria}) 
 
 # View para remover categoria 
@@ -94,8 +94,7 @@ def form_cliente(request):
             messages.success(request, 'Operação realizada com sucesso!')
             return redirect('cliente')
         else:
-            # Opcional: Mensagem genérica, pois os erros específicos 
-            # estarão no form.errors dentro do template.
+           
             messages.error(request, 'Erro ao salvar o registro. Verifique os campos.')
     else:
         form = ClienteForm() # Método GET: Formulário vazio
@@ -163,10 +162,8 @@ def form_produto(request):
     else:
         form = ProdutoForm()
     
-    # Verifique se o nome do arquivo é formulario.html ou form.html (seu zip veio como form.html)
     return render(request, 'produto/form.html', {'form': form})
 
-# View para Editar Produto (Necessária para o botão Editar do lista.html)
 @login_required
 def editar_produto(request, id):
     item = Produto.objects.get(pk=id)
@@ -180,7 +177,7 @@ def editar_produto(request, id):
         form = ProdutoForm(instance=item)
     return render(request, 'produto/form.html', {'form': form})
 
-# View para Remover Produto (Necessária para o botão Remover do lista.html)
+# View para remover produto
 @login_required
 def remover_produto(request, id):
     item = Produto.objects.get(pk=id)
@@ -258,23 +255,15 @@ def pedido(request):
 
 # View para criar um novo pedido
 @login_required
-def novo_pedido(request,id):
-    if request.method == 'GET':
-        try:
-            cliente = Cliente.objects.get(pk=id)
-        except Cliente.DoesNotExist:
-            # Caso o registro não seja encontrado, exibe a mensagem de erro
-            messages.error(request, 'Registro não encontrado')
-            return redirect('cliente')  # Redireciona para a listagem
-        # cria um novo pedido com o cliente selecionado
-        pedido = Pedido(cliente=cliente)
-        form = PedidoForm(instance=pedido)# cria um formulario com o novo pedido
-        return render(request, 'pedido/form.html',{'form': form,})
-    else: # se for metodo post, salva o pedido.
-        form = PedidoForm(request.POST)
-        if form.is_valid():
-            pedido = form.save()
-            return redirect('pedido')
+# home/views.py
+def novo_pedido(request, id):
+    cliente = get_object_or_404(Cliente, pk=id)
+    
+    pedido = Pedido.objects.create(cliente=cliente)
+    
+    messages.success(request, f'Pedido #{pedido.id} gerado para {cliente.nome}. Adicione os itens abaixo.')
+    
+    return redirect('detalhes_pedido', id=pedido.id)
 
 
 # View para exibir detalhes do pedido
@@ -350,6 +339,65 @@ def remover_item_pedido(request, id):
 
 
 
+# View para o formulário de pagamento
+@login_required
+def form_pagamento(request, id):
+    pedido = get_object_or_404(Pedido, pk=id)
+    
+    if request.method == 'POST':
+        form = PagamentoForm(request.POST)
+        if form.is_valid():
+            pagamento = form.save(commit=False)
+            pagamento.pedido = pedido  # Garante que o pagamento salve no pedido certo
+            pagamento.save()
+            messages.success(request, 'Operação realizada com Sucesso')
+            return redirect('form_pagamento', id=id)
+    else:
+        # Modo GET (carregamento inicial)
+        pagamento = Pagamento(pedido=pedido)
+        form = PagamentoForm(instance=pagamento)
+
+    contexto = {'pedido': pedido, 'form': form}
+    return render(request, 'pedido/pagamento.html', contexto)
+
+
+# View para gerar nota fiscal
+@login_required
+def nota_fiscal(request, id):
+    try:
+        pedido = Pedido.objects.get(pk=id)
+    except Pedido.DoesNotExist:
+        # Caso o registro não seja encontrado, exibe a mensagem de erro
+        messages.error(request, 'Registro não encontrado')
+        return redirect('pedido')  # Redireciona para a listagem    
+    return render(request, 'pedido/nota_fiscal.html', {'pedido': pedido})
+
+
+# View para Editar Pagamento
+@login_required
+def editar_pagamento(request, id):
+    pagamento = get_object_or_404(Pagamento, pk=id)
+    pedido_id = pagamento.pedido.id
+    
+    if request.method == 'POST':
+        form = PagamentoForm(request.POST, instance=pagamento)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Pagamento atualizado com sucesso!')
+            return redirect('form_pagamento', id=pedido_id)
+    else:
+        form = PagamentoForm(instance=pagamento)
+    
+    return render(request, 'pedido/pagamento.html', {'form': form, 'pedido': pagamento.pedido})
+
+# View para Remover Pagamento
+@login_required
+def remover_pagamento(request, id):
+    pagamento = get_object_or_404(Pagamento, pk=id)
+    pedido_id = pagamento.pedido.id
+    pagamento.delete()
+    messages.success(request, 'Pagamento removido com sucesso!')
+    return redirect('form_pagamento', id=pedido_id)
 
 
 

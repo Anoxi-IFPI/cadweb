@@ -1,6 +1,13 @@
 import locale
 from django.db import models
+from decimal import Decimal
 
+
+ALIQUOTA_ICMS = 18.0
+ALIQUOTA_IPI = 4.0
+ALIQUOTA_PIS = 1.65
+ALIQUOTA_COFINS = 7.6
+    
 class Categoria(models.Model):
     nome = models.CharField(max_length=100)
     ordem = models.IntegerField()
@@ -55,7 +62,7 @@ class Estoque(models.Model):
     
 # home/Pedido.py
 class Pedido(models.Model):
-
+    
 
     NOVO = 1
     EM_ANDAMENTO = 2
@@ -91,14 +98,64 @@ class Pedido(models.Model):
         
     @property
     def total(self):
-        """Soma o total de todos os itens do pedido [cite: 69]"""
         total_pedido = sum(item.total for item in self.itempedido_set.all())
         return total_pedido
 
     @property
     def qtdeItens(self):
-        """Conta a quantidade de tipos de itens no pedido [cite: 69]"""
         return self.itempedido_set.count()
+
+    @property
+    def pagamentos(self):
+        return Pagamento.objects.filter(pedido=self)
+
+    @property
+    def total_pago(self):
+        total = sum(pagamento.valor for pagamento in self.pagamentos.all())
+        return total
+
+    @property
+    def debito(self):
+        return self.total - self.total_pago
+    
+    @property
+    def icms(self):
+        return self.total * (Decimal(ALIQUOTA_ICMS) / 100)
+
+    @property
+    def ipi(self):
+        return self.total * (Decimal(ALIQUOTA_IPI) / 100)
+
+    @property
+    def pis(self):
+        return self.total * (Decimal(ALIQUOTA_PIS) / 100)
+
+    @property
+    def cofins(self):
+        return self.total * (Decimal(ALIQUOTA_COFINS) / 100)
+
+    @property
+    def total_impostos(self):
+        """Soma de todos os impostos calculados"""
+        return self.icms + self.ipi + self.pis + self.cofins
+
+    @property
+    def valor_final(self):
+        """Total do Pedido + Soma dos Impostos"""
+        return self.total + self.total_impostos
+        
+    @property
+    def chave_acesso(self):
+        """
+        Gera uma chave de acesso fictícia baseada no ID, data e um número aleatório.
+        Exemplo: 202601ID0001RAND9999
+        """
+        import random
+        data_str = self.data_pedido.strftime('%Y%m%d')
+        numero_aleatorio = random.randint(1000, 9999)
+        return f"{data_str}{self.id:04d}{numero_aleatorio}99990001"
+        
+
 
 # home/ItemPedido.py
 class ItemPedido(models.Model):
@@ -112,5 +169,34 @@ class ItemPedido(models.Model):
         return f"{self.produto.nome} (Qtd: {self.qtde}) - Preço Unitário: {self.preco}"  
     @property
     def total(self):
-        """Calcula o total do item: quantidade x preço [cite: 74, 75]"""
         return self.qtde * self.preco
+    
+
+# home/Pagamento.py
+class Pagamento(models.Model):
+    DINHEIRO = 1
+    CARTAO = 2
+    PIX = 3
+    OUTRA = 4
+
+
+    FORMA_CHOICES = [
+        (DINHEIRO, 'Dinheiro'),
+        (CARTAO, 'Cartão'),
+        (PIX, 'Pix'),
+        (OUTRA, 'Outra'),
+    ]
+
+
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
+    forma = models.IntegerField(choices=FORMA_CHOICES)
+    valor = models.DecimalField(max_digits=10, decimal_places=2,blank=False)
+    data_pgto = models.DateTimeField(auto_now_add=True)
+    
+    @property
+    def data_pgtof(self):
+        """Retorna a data no formato DD/MM/AAAA HH:MM"""
+        if self.data_pgto:
+            return self.data_pgto.strftime('%d/%m/%Y %H:%M')
+        return None
+    
